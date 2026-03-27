@@ -6,7 +6,7 @@ This tweak restores the classic Aqua-style scrollbars on macOS. It mimics the lo
 1. Pull a copy of the repo.
 2. Build into a .dylib for your arch.
 3. Install with ammonia.
-# Pre-compiled:
+# Pre-compiled
 1. Download the precompiled binary and move to your tweaks folder. 
 
 ## Usage
