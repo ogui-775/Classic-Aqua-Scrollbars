@@ -10,6 +10,7 @@ This tweak restores the classic Aqua-style scrollbars on macOS. It mimics the lo
 1. Download the precompiled binary and move to your tweaks folder. 
 
 ## Usage
+Ammonia (https://github.com/CoreBedtime/ammonia) is required to use this tweak.
 After installation, the scrollbars will revert to the classic Aqua style, making for a nostalgic and visually appealing experience while using macOS. 
 
 ## Troubleshooting
