@@ -28,23 +28,23 @@
         if (o == SOScrollOrientationVertical){
             CGFloat delta = (self.mod * v.verticalLineScroll) * (flipped ? 1 : -1);
             
-            if ((v.verticalScroller.doubleValue == 1 && delta < 0)|| (v.verticalScroller.doubleValue == 0 && delta > 0))
+            if ((v.verticalScroller.doubleValue == 1 && delta < 0) || (v.verticalScroller.doubleValue == 0 && delta > 0))
                 return;
 
             CGFloat newY = bounds.origin.y - delta;
 
-            [cv scrollToPoint:CGPointMake(bounds.origin.x, newY)];
+            [cv scrollToPoint:[cv constrainScrollPoint:CGPointMake(bounds.origin.x, newY)]];
             [v reflectScrolledClipView:cv];
             
         } else {
             CGFloat delta = (self.mod * v.horizontalLineScroll) * (flipped ? -1 : 1);
 
-            if ((v.horizontalScroller.doubleValue == 1 && delta < 0)|| (v.horizontalScroller.doubleValue == 0 && delta > 0))
+            if ((v.horizontalScroller.doubleValue == 1 && delta < 0) || (v.horizontalScroller.doubleValue == 0 && delta > 0))
                 return;
             
             CGFloat newX = bounds.origin.x - delta;
 
-            [cv scrollToPoint:CGPointMake(newX, bounds.origin.y)];
+            [cv scrollToPoint:[cv constrainScrollPoint:CGPointMake(newX, bounds.origin.y)]];
             [v reflectScrolledClipView:cv];
         }
 
