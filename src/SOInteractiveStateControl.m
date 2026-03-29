@@ -22,38 +22,29 @@
         NSScrollView * v = (NSScrollView *)[[self.weakTarg valueForKey:@"_scroller"] superview];
         NSClipView * cv = [v contentView];
         NSView * docView = cv.documentView;
-        NSRect bounds = cv.bounds;
-        NSRect docFrame = docView.frame;
+        CGRect bounds = [cv constrainBoundsRect:cv.bounds];
         BOOL flipped = docView.isFlipped;
-        NSRect visible = cv.documentVisibleRect;
         
         if (o == SOScrollOrientationVertical){
-            CGFloat delta = self.modAmount * (flipped ? 1 : -1);
-            CGFloat maxY = docFrame.size.height - visible.size.height;
-            if (maxY < 0) maxY = 0;
+            CGFloat delta = (self.mod * v.verticalLineScroll) * (flipped ? 1 : -1);
             
-            CGFloat minY = bounds.origin.y - visible.size.height;
+            if ((v.verticalScroller.doubleValue == 1 && delta < 0)|| (v.verticalScroller.doubleValue == 0 && delta > 0))
+                return;
 
             CGFloat newY = bounds.origin.y - delta;
-            newY = CLAMP(minY, newY, maxY);
 
-            NSPoint constrained = [cv constrainScrollPoint:CGPointMake(bounds.origin.x, newY)];
-
-            [cv scrollToPoint:constrained];
+            [cv scrollToPoint:CGPointMake(bounds.origin.x, newY)];
             [v reflectScrolledClipView:cv];
-        } else {
-            CGFloat delta = self.modAmount * (flipped ? -1 : 1);
-            CGFloat maxX = docFrame.size.width - visible.size.width;
-            if (maxX < 0) maxX = 0;
             
-            CGFloat minX = bounds.origin.x - visible.size.width;
+        } else {
+            CGFloat delta = (self.mod * v.horizontalLineScroll) * (flipped ? -1 : 1);
 
+            if ((v.horizontalScroller.doubleValue == 1 && delta < 0)|| (v.horizontalScroller.doubleValue == 0 && delta > 0))
+                return;
+            
             CGFloat newX = bounds.origin.x - delta;
-            newX = CLAMP(minX, newX, maxX);
 
-            NSPoint constrained = [cv constrainScrollPoint:CGPointMake(newX, bounds.origin.y)];
-
-            [cv scrollToPoint:constrained];
+            [cv scrollToPoint:CGPointMake(newX, bounds.origin.y)];
             [v reflectScrolledClipView:cv];
         }
 
@@ -61,7 +52,8 @@
 
     scrollBlock();
 
-    self.timer = [NSTimer scheduledTimerWithTimeInterval:0.05 repeats:YES block:^(NSTimer *timer) {
+    self.timer = [NSTimer scheduledTimerWithTimeInterval:0.10 repeats:YES block:^(NSTimer *timer) {
+        
         scrollBlock();
     }];
 

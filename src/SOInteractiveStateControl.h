@@ -9,8 +9,8 @@
 @property BOOL mouseDownInFrame;
 @property SEL pressedSel;
 @property (strong) NSTimer * timer;
-@property (assign) CGFloat modAmount;
 @property (weak) id weakTarg;
+@property (assign) int mod;
 - (void)handleMouseDown:(NSEvent *)event inView:(NSView *)view;
 - (void)handleMouseUp:(NSEvent *)event inView:(NSView *)view;
 @end

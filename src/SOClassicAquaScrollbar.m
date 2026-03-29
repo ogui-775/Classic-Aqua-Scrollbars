@@ -130,7 +130,7 @@ static inline BOOL isOverlayMode(void){
                     NSScroller * scroller = [imp valueForKey:@"_scroller"];
                     [scroller addSubview:downArrowO positioned:NSWindowAbove relativeTo:scroller];
                     [downArrowO.iStateController setWeakTarg:imp];
-                    [downArrowO.iStateController setModAmount:-10.00];
+                    [downArrowO.iStateController setMod:-1];
                 }
                 
                 if (!objc_getAssociatedObject(imp, upArrow) && !isOverlayMode()){
@@ -143,7 +143,7 @@ static inline BOOL isOverlayMode(void){
                     NSScroller * scroller = [imp valueForKey:@"_scroller"];
                     [scroller addSubview:upArrowO positioned:NSWindowAbove relativeTo:scroller];
                     [upArrowO.iStateController setWeakTarg:imp];
-                    [upArrowO.iStateController setModAmount:10.00];
+                    [upArrowO.iStateController setMod:1];
                 }
 
                 //Safari handliog (imp is destroyed -> reparented to WebKit)

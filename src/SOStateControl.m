@@ -16,6 +16,16 @@
         
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(stateDidChange:)
+                                                     name:NSWindowDidBecomeKeyNotification
+                                                   object:nil];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(stateDidChange:)
+                                                     name:NSWindowDidResignKeyNotification
+                                                   object:nil];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(stateDidChange:)
                                                      name:NSWindowDidBecomeMainNotification
                                                    object:nil];
         
@@ -37,13 +47,15 @@
     
     SOScrollerResources * instance = [SOScrollerResources sharedInstance];
     
-    if (notification.name == NSWindowDidBecomeMainNotification && !self.isActive){
+    if ((notification.name == NSWindowDidBecomeKeyNotification || notification.name == NSWindowDidBecomeMainNotification)
+            && !self.isActive){
         self.isActive = YES;
         Method m = class_getInstanceMethod(SOScrollerResources.class, self.activeSel);
         resourceSelFunc = (void *)method_getImplementation(m);
         
         self.boundLayer.contents = (__bridge id)resourceSelFunc(instance, self.activeSel, o);
-    } else if (notification.name == NSWindowDidResignMainNotification && self.isActive){
+    } else if ((notification.name == NSWindowDidResignKeyNotification || notification.name == NSWindowDidResignMainNotification)
+            && self.isActive){
         self.isActive = NO;
         Method m = class_getInstanceMethod(SOScrollerResources.class, self.inactiveSel);
         resourceSelFunc = (void *)method_getImplementation(m);
