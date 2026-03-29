@@ -30,9 +30,9 @@ static NSString * const kCAContentsScalingStretch = @"stretch";
         
         [self setGeometryFlipped:YES];
         
-        [self.topCapLayer setContentsGravity:kCAGravityResizeAspectFill];
+        [self.topCapLayer setContentsGravity:kCAGravityResize];
         [self.middleLayer setContentsGravity:kCAGravityResize];
-        [self.bottomLayer setContentsGravity:kCAGravityResizeAspectFill];
+        [self.bottomLayer setContentsGravity:kCAGravityResize];
         
         self.stateControllerTop = [[SOStateControl alloc] initWithLayer:self.topCapLayer
                                                           trackLayer:self
@@ -63,20 +63,21 @@ static NSString * const kCAContentsScalingStretch = @"stretch";
 
     if (self.orientation == SOScrollOrientationVertical){
         CGFloat topSize = CGImageGetHeight((__bridge CGImageRef)self.topCapLayer.contents) * 0.5;
-        CGFloat midSize = CGImageGetHeight((__bridge CGImageRef)self.middleLayer.contents) * 0.5;
         CGFloat botSize = CGImageGetHeight((__bridge CGImageRef)self.bottomLayer.contents) * 0.5;
         
-        CGFloat totalSize = topSize + midSize + botSize;
+        CGFloat capSize = topSize + botSize;
         CGSize trackSize = self.trackLayer.bounds.size;
-        
-        if (totalSize > frame.size.height){
-            if (self.middleLayer.frame.size.height > 0){
+
+        if (capSize >= frame.size.height){
+            if (!self.middleLayer.isHidden)
                 [self.middleLayer setHidden:YES];
-            }
+            
             [self.bottomLayer setFrame:CGRectMake(-frame.origin.x, 0, trackSize.width - 3, frame.size.height / 2)];
             [self.topCapLayer setFrame:CGRectMake(-frame.origin.x, frame.size.height / 2, trackSize.width - 3, frame.size.height / 2)];
         } else {
-            [self.middleLayer setHidden:NO];
+            if (self.middleLayer.isHidden)
+                [self.middleLayer setHidden:NO];
+            
             [self.bottomLayer setFrame:CGRectMake(-frame.origin.x, 0, trackSize.width - 3, botSize)];
             [self.middleLayer setFrame:CGRectMake(-frame.origin.x, botSize, trackSize.width - 3, frame.size.height - botSize - topSize)];
             [self.topCapLayer setFrame:CGRectMake(-frame.origin.x, self.middleLayer.bounds.size.height + botSize - 1, trackSize.width - 3, topSize)];
@@ -89,20 +90,21 @@ static NSString * const kCAContentsScalingStretch = @"stretch";
         [self.replicantMask setNeedsDisplay];
     } else {
         CGFloat topSize = CGImageGetWidth((__bridge CGImageRef)self.topCapLayer.contents) * 0.5;
-        CGFloat midSize = CGImageGetWidth((__bridge CGImageRef)self.middleLayer.contents) * 0.5;
         CGFloat botSize = CGImageGetWidth((__bridge CGImageRef)self.bottomLayer.contents) * 0.5;
         
-        CGFloat totalSize = topSize + midSize + botSize;
+        CGFloat capSize = topSize + botSize;
         CGSize trackSize = self.trackLayer.bounds.size;
         
-        if (totalSize > frame.size.width){
-            if (self.middleLayer.frame.size.width > 0){
+        if (capSize >= frame.size.width){
+            if (!self.middleLayer.isHidden)
                 [self.middleLayer setHidden:YES];
-            }
+            
             [self.bottomLayer setFrame:CGRectMake(0, -1, frame.size.width / 2, trackSize.height - 4)];
             [self.topCapLayer setFrame:CGRectMake(frame.size.width / 2, -1, frame.size.width / 2, trackSize.height - 4)];
         } else {
-            [self.middleLayer setHidden:NO];
+            if (self.middleLayer.isHidden)
+                [self.middleLayer setHidden:NO];
+            
             [self.bottomLayer setFrame:CGRectMake(0, -1, botSize, trackSize.height - 4)];
             [self.middleLayer setFrame:CGRectMake(botSize, -1, frame.size.width - botSize - topSize, trackSize.height - 4)];
             [self.topCapLayer setFrame:CGRectMake(self.middleLayer.bounds.size.width + botSize - 1, -1, topSize, trackSize.height - 4)];

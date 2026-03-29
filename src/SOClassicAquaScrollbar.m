@@ -83,8 +83,7 @@ static inline BOOL isOverlayMode(void){
             if (!newTrackLayer){
                 newTrackLayer = [SOTrackLayer layer];
                 newTrackLayer.name = @"nt";
-                [newTrackLayer setContentsGravity:kCAGravityResize];
-                [newTrackLayer setContents:(__bridge id)[[SOScrollerResources sharedInstance] trackImageForOrientation:o]];
+                [(SOTrackLayer *)newTrackLayer changeOrientationTo:o];
                 [imp.layer insertSublayer:newTrackLayer atIndex:0];
                 [newTrackLayer setFrame:[SOClassicAquaScrollbar TrackFrame:o imp:imp]];
                 if (isOverlayMode()){
@@ -108,7 +107,6 @@ static inline BOOL isOverlayMode(void){
                 tiledLayer.name = @"t";
                 
                 [imp.layer insertSublayer:tiledLayer below:knobOverlayLayer];
-                
                 [imp setKnobAlpha:0];
                 [imp.trackLayer setHidden:YES];
                 [tiledLayer setMask:[(SOScrollerOverlay *)knobOverlayLayer replicantMask]];
