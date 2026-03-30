@@ -16,7 +16,5 @@
 @property (weak) CALayer * trackLayer;
 @property (assign) SOScrollOrientation orientation;
 @property (assign) BOOL isActive;
-@property (assign) BOOL beingForcedToInactive;
-- (void)stateDidChange:(NSNotification *)notification;
 - (void)forceActiveStateTo:(BOOL)active;
 @end

@@ -80,6 +80,8 @@ static inline BOOL isOverlayMode(void){
                     newTrackLayer = sub;
             }
             
+            NSScroller * scroller = [imp valueForKey:@"_scroller"];
+            
             if (!newTrackLayer){
                 newTrackLayer = [SOTrackLayer layer];
                 newTrackLayer.name = @"nt";
@@ -127,7 +129,6 @@ static inline BOOL isOverlayMode(void){
                                                                               isUpArrow:NO];
                     
                     objc_setAssociatedObject(imp, downArrow, downArrowO, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                    NSScroller * scroller = [imp valueForKey:@"_scroller"];
                     [scroller addSubview:downArrowO positioned:NSWindowAbove relativeTo:scroller];
                     [downArrowO.iStateController setWeakTarg:imp];
                     [downArrowO.iStateController setMod:-1];
@@ -140,7 +141,6 @@ static inline BOOL isOverlayMode(void){
                                                                               isUpArrow:YES];
                     
                     objc_setAssociatedObject(imp, upArrow, upArrowO, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                    NSScroller * scroller = [imp valueForKey:@"_scroller"];
                     [scroller addSubview:upArrowO positioned:NSWindowAbove relativeTo:scroller];
                     [upArrowO.iStateController setWeakTarg:imp];
                     [upArrowO.iStateController setMod:1];

@@ -13,8 +13,37 @@
         self.trackLayer = trackLayer;
         self.orientation = o;
         self.isActive = [[NSApplication sharedApplication] isActive];
+        [self forceActiveStateTo:YES];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(handleNotification:)
+                                                     name:NSWindowDidBecomeKeyNotification
+                                                   object:nil];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(handleNotification:)
+                                                     name:NSWindowDidBecomeMainNotification
+                                                   object:nil];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(handleNotification:)
+                                                     name:NSWindowDidResignKeyNotification
+                                                   object:nil];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(handleNotification:)
+                                                     name:NSWindowDidResignMainNotification
+                                                   object:nil];
     }
     return self;
+}
+
+- (void)handleNotification:(NSNotification *)n{
+    if (n.name == NSWindowDidBecomeKeyNotification || n.name == NSWindowDidBecomeMainNotification){
+        [self forceActiveStateTo:YES];
+    } else if (n.name == NSWindowDidResignKeyNotification || n.name == NSWindowDidResignMainNotification){
+        [self forceActiveStateTo:NO];
+    }
 }
 
 - (void)forceActiveStateTo:(BOOL)active{
