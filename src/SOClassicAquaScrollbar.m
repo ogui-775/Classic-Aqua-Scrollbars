@@ -5,12 +5,16 @@
 static NSString * const kCAContentsScalingRepeat = @"repeat";
 static NSString * const kCAContentsScalingStretch = @"stretch";
 
-static const void * kNeedsLayoutKey = &kNeedsLayoutKey;
-static const void * iAmAWebKit = &iAmAWebKit;
-static const void * downArrow = &downArrow;
-static const void * upArrow = &upArrow;
-static const void * downArrowsScroller = &downArrowsScroller;
-static const void * upArrowsScroller = &upArrowsScroller;
+static const void *kNeedsLayoutKey = &kNeedsLayoutKey;
+static const void *iAmAWebKit = &iAmAWebKit;
+static const void *downArrow = &downArrow;
+static const void *upArrow = &upArrow;
+static const void *downArrowsScroller = &downArrowsScroller;
+static const void *upArrowsScroller = &upArrowsScroller;
+
+static const void *kSOTrackLayer = &kSOTrackLayer;
+static const void *kSOTiledLayer = &kSOTiledLayer;
+static const void *kSOOverlayLayer = &kSOOverlayLayer;
 
 static inline BOOL isXPCService(void){
     return [[[NSBundle mainBundle] bundlePath] containsString:@"xpc"];
@@ -18,10 +22,6 @@ static inline BOOL isXPCService(void){
 
 static inline BOOL isDockProcess(void){
     return [[[NSProcessInfo processInfo] processName] containsString:@"Dock"];
-}
-
-static inline BOOL isLoginWindow(void){
-    return [[[NSProcessInfo processInfo] processName] containsString:@"login"];
 }
 
 static inline BOOL isOverlayMode(void){
@@ -33,7 +33,7 @@ static inline BOOL isOverlayMode(void){
 #pragma mark - Loader
 
 + (void)load{
-    if (!isXPCService() && !isDockProcess() && !isLoginWindow()){
+    if (!isXPCService() && !isDockProcess()){
         [SOClassicAquaScrollbar replaceLegacyScroller];
         [SOClassicAquaScrollbar hookSetFrameSize];
         [SOClassicAquaScrollbar hookSetDoubleValue];
@@ -67,41 +67,41 @@ static inline BOOL isOverlayMode(void){
         
         if (imp.knobLayer){
             
-            CALayer * tiledLayer = nil;
-            CALayer * knobOverlayLayer = nil;
-            CALayer * newTrackLayer = nil;
+            SOTiledLayer *tiledLayer = objc_getAssociatedObject(imp, kSOTiledLayer);
+            SOScrollerOverlay *knobOverlayLayer = objc_getAssociatedObject(imp, kSOOverlayLayer);
+            SOTrackLayer *newTrackLayer = objc_getAssociatedObject(imp, kSOTrackLayer);
             
-            for (CALayer * sub in [imp.layer.sublayers copy]){
-                if ([sub.name isEqualToString:@"t"])
-                    tiledLayer = sub;
-                if ([sub.name isEqualToString:@"ko"])
-                    knobOverlayLayer = sub;
-                if ([sub.name isEqualToString:@"nt"])
-                    newTrackLayer = sub;
-            }
-            
-            NSScroller * scroller = [imp valueForKey:@"_scroller"];
+            NSScroller *scroller = [imp valueForKey:@"_scroller"];
             
             if (!newTrackLayer){
                 newTrackLayer = [SOTrackLayer layer];
                 newTrackLayer.name = @"nt";
-                [(SOTrackLayer *)newTrackLayer changeOrientationTo:o];
+                [newTrackLayer changeOrientationTo:o];
                 [imp.layer insertSublayer:newTrackLayer atIndex:0];
                 [newTrackLayer setFrame:[SOClassicAquaScrollbar TrackFrame:o imp:imp]];
+                [newTrackLayer setContents:(__bridge id)[[SOScrollerResources sharedInstance] trackImageForOrientation:o]];
                 if (isOverlayMode()){
                     newTrackLayer.opacity = 0;
                     [imp.trackLayer setHidden:YES];
                 }
+                objc_setAssociatedObject(imp,
+                                         kSOTrackLayer,
+                                         newTrackLayer,
+                                         OBJC_ASSOCIATION_RETAIN);
             }
             
             if (!knobOverlayLayer){
                 knobOverlayLayer = [[SOScrollerOverlay alloc] initWithLayer:imp.knobLayer orientation:o];
                 knobOverlayLayer.name = @"ko";
                 [knobOverlayLayer setHidden:imp.knobLayer.isHidden];
-                SOReplicantMask * replicant = [[SOReplicantMask alloc] initWithParent:(SOScrollerOverlay *)knobOverlayLayer];
-                [(SOScrollerOverlay *)knobOverlayLayer setReplicantMask:replicant];
-                [(SOScrollerOverlay *)knobOverlayLayer setTrackLayer:(SOTrackLayer *)newTrackLayer];
+                SOReplicantMask *replicant = [[SOReplicantMask alloc] initWithParent:(SOScrollerOverlay *)knobOverlayLayer];
+                [knobOverlayLayer setReplicantMask:replicant];
+                [knobOverlayLayer setTrackLayer:newTrackLayer];
                 [imp.layer addSublayer:knobOverlayLayer];
+                objc_setAssociatedObject(imp,
+                                         kSOOverlayLayer,
+                                         knobOverlayLayer,
+                                         OBJC_ASSOCIATION_RETAIN);
             }
             
             if (!tiledLayer){
@@ -111,7 +111,11 @@ static inline BOOL isOverlayMode(void){
                 [imp.layer insertSublayer:tiledLayer below:knobOverlayLayer];
                 [imp setKnobAlpha:0];
                 [imp.trackLayer setHidden:YES];
-                [tiledLayer setMask:[(SOScrollerOverlay *)knobOverlayLayer replicantMask]];
+                [tiledLayer setMask:[knobOverlayLayer replicantMask]];
+                objc_setAssociatedObject(imp,
+                                         kSOTiledLayer,
+                                         tiledLayer,
+                                         OBJC_ASSOCIATION_RETAIN);
             }
             
             if (tiledLayer && knobOverlayLayer){
@@ -123,7 +127,7 @@ static inline BOOL isOverlayMode(void){
                 }
                 
                 if (!objc_getAssociatedObject(imp, downArrow) && !isOverlayMode()){
-                    SOScrollButton * downArrowO = [[SOScrollButton alloc] initWithFrame:CGRectMake(0, newTrackLayer.bounds.size.height - 38, newTrackLayer.bounds.size.width - 2, 38)
+                    SOScrollButton *downArrowO = [[SOScrollButton alloc] initWithFrame:CGRectMake(0, newTrackLayer.bounds.size.height - 38, newTrackLayer.bounds.size.width - 2, 38)
                                                                                   track:(SOTrackLayer *)newTrackLayer
                                                                             orientation:o
                                                                               isUpArrow:NO];
@@ -135,7 +139,7 @@ static inline BOOL isOverlayMode(void){
                 }
                 
                 if (!objc_getAssociatedObject(imp, upArrow) && !isOverlayMode()){
-                    SOScrollButton * upArrowO = [[SOScrollButton alloc] initWithFrame:CGRectMake(0, 0, newTrackLayer.bounds.size.width - 2, 38)
+                    SOScrollButton *upArrowO = [[SOScrollButton alloc] initWithFrame:CGRectMake(0, 0, newTrackLayer.bounds.size.width - 2, 38)
                                                                                   track:(SOTrackLayer *)newTrackLayer
                                                                             orientation:o
                                                                               isUpArrow:YES];
@@ -148,18 +152,36 @@ static inline BOOL isOverlayMode(void){
 
                 //Safari handliog (imp is destroyed -> reparented to WebKit)
                 if ([[imp.layer className] containsString:@"WK"] &&
-                        (![[(SOScrollerOverlay *)knobOverlayLayer knobParentLayer] isEqualTo:imp.knobLayer] ||
+                        (![[knobOverlayLayer knobParentLayer] isEqualTo:imp.knobLayer] ||
                             !objc_getAssociatedObject(imp, iAmAWebKit))){
                     
                     objc_setAssociatedObject(imp, iAmAWebKit, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
                     
                     [imp setKnobAlpha:0];
                     [imp.knobLayer setNeedsDisplay];
-                    [imp.layer insertSublayer:tiledLayer above:imp.trackLayer];
+                    [imp.layer insertSublayer:tiledLayer
+                                        above:imp.trackLayer];
                     [imp.layer addSublayer:knobOverlayLayer];
                     [imp.trackLayer setHidden:YES];
-                    [(SOScrollerOverlay *)knobOverlayLayer setKnobParentLayer:imp.knobLayer];
-                    [tiledLayer setMask:[(SOScrollerOverlay *)knobOverlayLayer replicantMask]];
+                    [knobOverlayLayer setKnobParentLayer:imp.knobLayer];
+                    [tiledLayer setMask:[knobOverlayLayer replicantMask]];
+                    
+                    objc_setAssociatedObject(imp,
+                                             kSOTiledLayer,
+                                             tiledLayer,
+                                             OBJC_ASSOCIATION_RETAIN);
+                    objc_setAssociatedObject(imp,
+                                             kSOOverlayLayer,
+                                             knobOverlayLayer,
+                                             OBJC_ASSOCIATION_RETAIN);
+                    
+                    SOScrollButton *downArrowObj = objc_getAssociatedObject(imp, downArrow);
+                    if (downArrowObj)
+                        [scroller addSubview:downArrowObj positioned:NSWindowAbove relativeTo:scroller];
+                    
+                    SOScrollButton *upArrowObj = objc_getAssociatedObject(imp, upArrow);
+                    if (upArrowObj)
+                        [scroller addSubview:upArrowObj positioned:NSWindowAbove relativeTo:scroller];
                 }
                 
                 //End Safari handling
@@ -289,7 +311,7 @@ static inline BOOL isOverlayMode(void){
     if (!imp.layer)
         return;
 
-    NSNumber * pending = objc_getAssociatedObject(imp, kNeedsLayoutKey);
+    NSNumber *pending = objc_getAssociatedObject(imp, kNeedsLayoutKey);
     
     if (pending.boolValue)
         return;
@@ -327,21 +349,11 @@ static inline BOOL isOverlayMode(void){
     SOScrollOrientation o = imp.layer.frame.size.height > imp.layer.frame.size.width
     ? SOScrollOrientationVertical : SOScrollOrientationHorizontal;
     
-    CALayer * tiledLayer = nil;
-    CALayer * knobOverlayLayer = nil;
-    CALayer * newTrackLayer = nil;
-    
-    for (CALayer * sub in [imp.layer.sublayers copy]){
-        if ([sub.name isEqualToString:@"t"])
-            tiledLayer = sub;
-        if ([sub.name isEqualToString:@"ko"])
-            knobOverlayLayer = sub;
-        if ([sub.name isEqualToString:@"nt"])
-            newTrackLayer = sub;
-    }
-    
-    SOScrollButton * upArrowB = objc_getAssociatedObject(imp, upArrow);
-    SOScrollButton * downArrowB = objc_getAssociatedObject(imp, downArrow);
+    SOTiledLayer *tiledLayer = objc_getAssociatedObject(imp, kSOTiledLayer);
+    SOScrollerOverlay *knobOverlayLayer = objc_getAssociatedObject(imp, kSOOverlayLayer);
+    SOTrackLayer *newTrackLayer = objc_getAssociatedObject(imp, kSOTrackLayer);
+    SOScrollButton *upArrowB = objc_getAssociatedObject(imp, upArrow);
+    SOScrollButton *downArrowB = objc_getAssociatedObject(imp, downArrow);
     
     if (knobOverlayLayer){
         if (   o != [(SOScrollerOverlay *)knobOverlayLayer orientation]

@@ -54,7 +54,7 @@
     
     SOScrollOrientation o = self.orientation;
     
-    SOScrollerResources * instance = [SOScrollerResources sharedInstance];
+    SOScrollerResources *instance = [SOScrollerResources sharedInstance];
     
     self.isActive = active;
     
